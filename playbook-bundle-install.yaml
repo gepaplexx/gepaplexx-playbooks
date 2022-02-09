@@ -1,0 +1,46 @@
+---
+- name: Install Bundle
+  hosts: all
+  environment:
+    KUBECONFIG: "{{ openshift_kubeconfig_file }}"
+  tasks: 
+    - name: Add Helm Repositories
+      with_items: "{{ bundle_repositories }}"
+      kubernetes.core.helm_repository:
+        repo_url: "{{ item.url | mandatory }}"
+        repo_name: "{{ item.name | mandatory }}"
+
+    - name: Install Helm Charts
+      with_items: "{{ bundle_packages }}"
+      # yamllint disable-line rule:line-length
+      when: item.chart_ref is defined and ( item.when | default(true) ) and ( item.enabled | default (false) )
+      # yamllint enable-line rule:line-length
+      kubernetes.core.helm:
+        chart_ref: "{{ item.chart_ref | mandatory }}"
+        chart_version: "{{ item.chart_version | default() }}"
+        create_namespace: "{{ item.create_namespace | default(true) }}"
+        release_name: "{{ item.name | mandatory }}"
+        release_namespace: "{{ item.namespace | default('default') }}"
+        release_values: "{{ item.parameters | default('{}') }}"
+        release_state: "{{ item.state | default('present') }}"
+        wait: "{{ item.wait | default(false) }}"
+
+    - name: Apply Manifests
+      with_items: "{{ bundle_packages }}"
+      # yamllint disable-line rule:line-length
+      when: item.manifest_uri is defined and ( item.when | default(true) )  and ( item.enabled | default (false) )
+      # yamllint enable-line rule:line-length
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ item.manifest_uri }}"
+        namespace: "{{ item.namespace | default('default') }}"
+
+    - name: Apply Definitions
+      with_items: "{{ bundle_packages }}"
+      # yamllint disable-line rule:line-length
+      when: item.definition is defined and ( item.when | default(true) )  and ( item.enabled | default (false) )
+      # yamllint enable-line rule:line-length
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ item.definition }}"
+...
