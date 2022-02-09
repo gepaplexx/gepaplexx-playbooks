@@ -1,17 +1,16 @@
 ---
 roles:
-  - gepaplexx.terraform
-  - gepaplexx.csr_autoapprove
-  - gepaplexx.dhcp
-  - gepaplexx.dns
-  - gepaplexx.haproxy
-  - gepaplexx.infranodes
-  - gepaplexx.k8stools
-  - gepaplexx.longhorn
-  - gepaplexx.microk8s
-  - gepaplexx.nginx
-  - gepaplexx.velero
-  - gepaplexx.tftp
-  - gepaplexx.unattended_upgrades
-  -
+  - name: gepaplexx.terraform
+  - name: gepaplexx.csr_autoapprove
+  - name: gepaplexx.dhcp
+  - name: gepaplexx.dns
+  - name: gepaplexx.haproxy
+  - name: gepaplexx.infranodes
+  - name: gepaplexx.k8stools
+  - name: gepaplexx.longhorn
+  - name: gepaplexx.microk8s
+  - name: gepaplexx.nginx
+  - name: gepaplexx.velero
+  - name: gepaplexx.tftp
+  - name: gepaplexx.unattended_upgrades
 ...
