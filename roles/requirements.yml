@@ -1,0 +1,17 @@
+---
+roles:
+  - gepaplexx.terraform
+  - gepaplexx.csr_autoapprove
+  - gepaplexx.dhcp
+  - gepaplexx.dns
+  - gepaplexx.haproxy
+  - gepaplexx.infranodes
+  - gepaplexx.k8stools
+  - gepaplexx.longhorn
+  - gepaplexx.microk8s
+  - gepaplexx.nginx
+  - gepaplexx.velero
+  - gepaplexx.tftp
+  - gepaplexx.unattended_upgrades
+  -
+...

@@ -2,9 +2,6 @@
 - name: Run terraform plan
   hosts:
     - all
-  tasks:
-    local_action:
-      command: ansible-galaxy install -r roles/requirements-terraform.yml
   roles:
     - role: gepaplexx.terraform
 ...
