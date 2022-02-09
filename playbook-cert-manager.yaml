@@ -1,0 +1,10 @@
+---
+- name: cert-manager
+  hosts:
+    - all
+  become: true
+  tags:
+    - kubernetes
+  roles:
+    - role: gepaplexx.cert_manager
+...
