@@ -1,0 +1,10 @@
+---
+- name: Autoapprove Nodes CSR
+  hosts:
+    - pxe
+  become: true
+  tags:
+    - csr
+  roles:
+    - role: gepaplexx.csr_autoapprove
+...
