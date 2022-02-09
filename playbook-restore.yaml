@@ -1,0 +1,44 @@
+---
+- name: Velero Install
+  hosts: all
+  gather_facts: false
+  environment:
+    KUBECONFIG: "{{ openshift_kubeconfig_file }}"
+  vars:
+    # prevent it from making a backup right away
+    velero_backupschedule_enabled: false
+  roles:
+    - role: gepaplexx.velero
+      tags:
+        - restore.velero
+        - restore.velero.install
+
+- name: Restore
+  hosts: all
+  gather_facts: false
+  environment:
+    KUBECONFIG: "{{ openshift_kubeconfig_file }}"
+  tasks:
+    - name: "debug: get backups"
+      changed_when: false
+      ansible.builtin.command:
+        cmd: "velero get backup"
+      tags:
+        - restore.velero
+        - restore.velero.debug
+        - restore.velero.cmd
+
+    - name: Initiate Restore
+      ansible.builtin.command:
+        cmd: >
+          velero create restore autorestore
+            --from-schedule=velero-backup
+            --allow-partially-failed=false
+            --wait
+      changed_when: true
+      tags:
+        - restore.velero
+        - restore.velero.restore
+        - restore.velero.cmd
+
+...
