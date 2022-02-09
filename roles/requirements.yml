@@ -14,4 +14,5 @@ roles:
   - name: gepaplexx.tftp
   - name: gepaplexx.unattended_upgrades
   - name: gepaplexx.cert_manager
+  - name: gepaplexx.pxe
 ...
