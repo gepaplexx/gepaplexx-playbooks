@@ -1,0 +1,8 @@
+---
+- name: dhcp
+  hosts:
+    - dhcp
+  become: true
+  roles:
+    - role: gepaplexx.dhcp
+...

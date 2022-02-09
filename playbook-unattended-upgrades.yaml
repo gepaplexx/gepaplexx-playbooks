@@ -1,0 +1,9 @@
+---
+- name: unattendend-upgrades
+  hosts: all
+  become: true
+  tags:
+    - unattended-upgrages
+  roles:
+    - role: gepaplexx.unattended_upgrades
+...

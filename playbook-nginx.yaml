@@ -1,0 +1,8 @@
+---
+- name: nginx
+  hosts:
+    - all
+  become: true
+  roles:
+    - role: gepaplexx.nginx
+...

@@ -1,0 +1,5 @@
+ansible
+ansible-base
+pre-commit
+ansible-lint
+kubernetes

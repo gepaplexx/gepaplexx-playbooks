@@ -1,0 +1,11 @@
+---
+- name: Install Longhorn
+  hosts:
+    - longhorn_executor
+    - longhorn_nodes
+  become: true
+  tags:
+    - longhorn
+  roles:
+    - role: gepaplexx.longhorn
+...

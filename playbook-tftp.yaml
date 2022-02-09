@@ -1,0 +1,8 @@
+---
+- name: tftp
+  hosts:
+    - all
+  become: true
+  roles:
+    - role: gepaplexx.tftp
+...

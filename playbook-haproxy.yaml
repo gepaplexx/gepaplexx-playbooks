@@ -1,0 +1,8 @@
+---
+- name: haproxy
+  hosts:
+    - all
+  become: true
+  roles:
+    - role: gepaplexx.haproxy
+...

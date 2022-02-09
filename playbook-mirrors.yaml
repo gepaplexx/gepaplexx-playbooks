@@ -1,5 +1,5 @@
 ---
-- name: Create ignition files with openshift-install
+- name: Install http-mirror and docker hub mirror on infrastructure cluster
   hosts:
     - all
   tags:

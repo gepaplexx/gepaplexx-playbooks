@@ -1,0 +1,8 @@
+---
+- name: dns
+  hosts:
+    - all
+  become: true
+  roles:
+    - role: gepaplexx.dns
+...

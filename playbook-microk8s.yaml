@@ -1,0 +1,9 @@
+---
+- name: microk8s
+  hosts: all
+  become: true
+  tags:
+    - microk8s
+  roles:
+    - role: gepaplexx.microk8s
+...
