@@ -1,0 +1,12 @@
+---
+- name: infranodes
+  hosts:
+    - all
+  become: true
+  tags:
+    - kubernetes
+    - openshift
+    - openshift.infranodes
+  roles:
+    - {role: gepaplexx.infranodes, when: ocp_infra_count > 0 | default (0)}
+...
