@@ -1,0 +1,9 @@
+---
+- name: Install K8stools
+  hosts: all
+  become: true
+  tags:
+    - k8stools
+  roles:
+    - role: gepaplexx.k8stools
+...
