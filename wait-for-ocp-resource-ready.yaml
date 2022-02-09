@@ -1,0 +1,13 @@
+---
+- name: Wait for (oc)
+  hosts: all
+  environment:
+    KUBECONFIG: "{{ openshift_kubeconfig_file }}"
+  tasks:
+    - name: Wait for {{ resource }} => {{ selector }}
+      shell: "oc wait --for=condition={{ condition }} {{ resource }} --selector {{ selector }} -n {{ namespace }} --timeout={{ timeout_in_sec | default(30) }}s"
+      register: wait_for
+      until: "'condition met' in wait_for.stdout"
+      retries: "{{ retries | default(5) }}"
+      delay: "{{ delay | default(10) }}"
+...

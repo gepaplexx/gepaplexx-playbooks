@@ -1,0 +1,43 @@
+---
+- name: Wait for OpenShift bootstrap to complete
+  hosts: all
+  # vars:
+  #   ocp_base_path: /home/ansible/openshift            # The path to store openshift related data such as install config
+                                                        # and openshift-install binary.
+  #   ocp_config_path: "{{ ocp_base_path }}/config"     # Install config directory used during openshift installation and
+                                                        # configuration. The config directory contains the iginition files
+                                                        # created by openshift-install and the initial auth credentials for
+                                                        # openshift.
+
+  #   wait_for_ocp_timeout_in_sec: 3060                 # maximal time a long running task is allowed to run before it times out.
+                                                        # the "openshift-install wait-for bootstrap-complete" command runs up to
+                                                        # 50 minutes before it fails. Hence the timout for the async task is set
+                                                        # slightly longer: 51 minutes.
+  #   wait_for_ocp_timeout_retry_interval_in_sec: 30    # interval in which ansible checks if the long runnig tasks has finished.
+  tasks:
+    - name: Run openshift-install wait-for bootstrap-complete
+      block:
+        - name: Run async openshift-install wait-for bootstrap-complete
+          ansible.builtin.command:
+            cmd: "./openshift-install --dir={{ ocp_config_path }} wait-for bootstrap-complete --log-level=info"
+            chdir: "{{ ocp_base_path }}"
+          async: "{{ wait_for_ocp_timeout_in_sec | default(3060) }}"  # The task will only time out if it exceeds the timeout limit
+                                                                      # you set with the async parameter (value in seconds).
+          poll: 0                           # When you set poll: 0, Ansible starts the task and immediately moves on to the next
+                                            # task without waiting for a result.
+          register: wait_for_ocp_bootstrap  # More details at: https://docs.ansible.com/ansible/latest/user_guide/playbooks_async.html
+          changed_when: false
+
+        - name: Wait for async openshift-bootstrap task to finish
+          ansible.builtin.async_status:
+            jid: "{{ wait_for_ocp_bootstrap.ansible_job_id }}"
+          register: wait_for_ocp_bootstrap_res
+          until: wait_for_ocp_bootstrap_res.finished
+          retries: "{{ (wait_for_ocp_timeout_in_sec | default(3060) / wait_for_ocp_timeout_retry_interval_in_sec | default(30) * 60) | round(0,'ceil') | int }}"
+          delay: "{{ wait_for_ocp_timeout_retry_interval_in_sec | default(30) }}"
+          changed_when: false
+      always:
+        - name: Print async task details
+          ansible.builtin.debug:
+            var: wait_for_ocp_bootstrap_res
+...

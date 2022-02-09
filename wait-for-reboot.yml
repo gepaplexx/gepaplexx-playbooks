@@ -1,0 +1,14 @@
+---
+- name: Wait for Reboot
+  hosts: all
+  # vars:
+  #   wait_for_reboot_timeout_in_sec: 600    # Maximum seconds to wait for machine to reboot and respond 
+  #                                          # to a test command. This timeout is evaluated separately for
+  #                                          # both reboot verification and test command success so the 
+  #                                          # maximum execution time for the reboot module is twice this 
+  #                                          # amount.
+  tasks:
+    - name: Reboot System
+      ansible.builtin.reboot:
+        reboot_timeout: "{{ wait_for_reboot_timeout_in_sec | default( 600 ) }}"
+...
