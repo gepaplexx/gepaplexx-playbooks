@@ -1,0 +1,31 @@
+---
+- name: Create ignition files with openshift-install
+  hosts:
+    - all
+  tags:
+    - infra.http-mirror
+
+  tasks:
+    - name: Add gepaplexx Helm charts repository
+      community.kubernetes.helm_repository:
+        name: gepaplexx-charts
+        repo_url: "https://gepaplexx.github.io/gp-helm-charts/"
+
+    - name: Install HTTP-Mirror
+      community.kubernetes.helm:
+        chart_ref: gepaplexx-charts/gp-http-mirror
+        release_name: openshift
+        release_namespace: gp-mirror
+        create_namespace: true
+      tags:
+        - notest
+
+    - name: Install Docker Hub Mirror
+      community.kubernetes.helm:
+        chart_ref: gepaplexx-charts/gp-pull-through-cache-registry
+        release_name: gp-registry-cache-kube
+        release_namespace: gp-registry
+        create_namespace: true
+      tags:
+        - notest
+...
