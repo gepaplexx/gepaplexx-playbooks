@@ -33,7 +33,7 @@
         cmd: >
           velero create restore autorestore
             --from-schedule=velero-backup
-            --allow-partially-failed=false
+            --allow-partially-failed=true
             --wait
       changed_when: true
       tags:
