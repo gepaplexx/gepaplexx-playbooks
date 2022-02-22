@@ -2,18 +2,18 @@
 
 # functions
 function getNotSynced() {
-  oc get applications -o jsonpath='{.items[*].status.sync}' --kubeconfig="${KUBECONFIG}" | jq 'select(.status != "Synced")' -c | wc -l
+  oc get applications  --insecure-skip-tls-verify -o jsonpath='{.items[*].status.sync}' --kubeconfig="${KUBECONFIG}" | jq 'select(.status != "Synced")' -c | wc -l
 }
 
 function getNotHealthy() {
-  oc get applications -o jsonpath='{.items[*].status.health}' --kubeconfig="${KUBECONFIG}" | jq 'select(.status != "Healthy")' -c | wc -l
+  oc get applications -o --insecure-skip-tls-verify jsonpath='{.items[*].status.health}' --kubeconfig="${KUBECONFIG}" | jq 'select(.status != "Healthy")' -c | wc -l
 }
 
 function waitForSync() {
   # Wait for all Applications to finish syncing
   echo "waiting for applications to be synced"
   while test "${not_synced}" -gt 0 && test "${loops}" -lt 50; do
-    not_synced=$(oc get applications -o jsonpath='{.items[*].status.sync}' | jq 'select(.status == "Synced")' -c | wc -l )
+    not_synced=$(getNotSynced)
     if test "${not_synced}" -gt 0; then
       echo "Loop ${loops}: waiting for ${not_synced} applications to finish syncing";
       sleep 60
@@ -35,7 +35,7 @@ function waitForHealthy() {
     echo "waiting for applications to be healthy"
 
     while test "${not_healthy}" -gt 0 && test "${loops}" -lt 50; do
-      not_synced=$(oc get applications -o jsonpath='{.items[*].status.health}' | jq 'select(.status == "Healthy")' -c | wc -l )
+      not_synced=$(getNotHealthy)
       if test "${not_healthy}" -gt 0; then
         echo "Loop ${loops}: waiting for ${not_healthy} applications to be healthy";
         sleep 60
