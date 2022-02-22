@@ -3,7 +3,7 @@
   hosts: all
   environment:
     KUBECONFIG: "{{ openshift_kubeconfig_file }}"
-  tasks: 
+  tasks:
 
     - name: Remove Definitions
       with_items: "{{ bundle_packages }}"

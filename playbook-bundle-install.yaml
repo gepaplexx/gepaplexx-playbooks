@@ -3,7 +3,7 @@
   hosts: all
   environment:
     KUBECONFIG: "{{ openshift_kubeconfig_file }}"
-  tasks: 
+  tasks:
     - name: Add Helm Repositories
       with_items: "{{ bundle_repositories }}"
       kubernetes.core.helm_repository:

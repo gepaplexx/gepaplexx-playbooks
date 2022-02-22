@@ -21,9 +21,9 @@
           ansible.builtin.command:
             cmd: "./openshift-install --dir={{ ocp_config_path }} wait-for install-complete --log-level=info"
             chdir: "{{ ocp_base_path }}"
-          async: "{{ wait_for_ocp_timeout_in_sec | default(3060) }}"  # The task will only time out if it exceeds the timeout limit 
+          async: "{{ wait_for_ocp_timeout_in_sec | default(3060) }}"  # The task will only time out if it exceeds the timeout limit
                                                                       # you set with the async parameter (value in seconds).
-          poll: 0                           # When you set poll: 0, Ansible starts the task and immediately moves on to the next 
+          poll: 0                           # When you set poll: 0, Ansible starts the task and immediately moves on to the next
                                             # task without waiting for a result.
           register: wait_for_ocp_install    # More details at: https://docs.ansible.com/ansible/latest/user_guide/playbooks_async.html
           changed_when: false
