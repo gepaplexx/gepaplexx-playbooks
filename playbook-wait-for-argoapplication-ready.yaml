@@ -1,0 +1,13 @@
+---
+- name: Wait for ArgoCD applications to be ready
+  hosts: all
+  - name: install required packaged
+    ansible.builtin.apt:
+    name:
+     - jq
+     state: present
+    update_cache: true
+
+  - name: wait for argoapplication status synced
+    ansible.builtin.script: files/argo-application-sync.sh {{ openshift_kubeconfig_file }}
+    changed_when: false
