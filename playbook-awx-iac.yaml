@@ -1,0 +1,8 @@
+---
+- name: awx-iac
+  hosts:
+    - all
+  become: true
+  roles:
+    - role: gepaplexx.awx_iac
+...
