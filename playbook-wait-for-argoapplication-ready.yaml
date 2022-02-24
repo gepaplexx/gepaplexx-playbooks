@@ -1,6 +1,7 @@
 ---
 - name: Wait for ArgoCD applications to be ready
   hosts: all
+  tasks:
   - name: install required packaged
     ansible.builtin.apt:
     name:
