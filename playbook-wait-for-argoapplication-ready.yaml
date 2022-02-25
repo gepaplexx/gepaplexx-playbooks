@@ -6,7 +6,6 @@
     ansible.builtin.apt:
     name:
      - jq
-    state: present
     update_cache: true
 
   - name: wait for argoapplication status synced
