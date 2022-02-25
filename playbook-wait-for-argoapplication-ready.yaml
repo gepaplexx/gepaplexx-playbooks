@@ -4,9 +4,10 @@
   tasks:
     - name: install required packaged
       ansible.builtin.apt:
-      name:
-       - jq
-      update_cache: true
+        name:
+         - jq
+        update_cache: true
+        state: present
 
     - name: wait for argoapplication status synced
       ansible.builtin.script: files/argo-application-sync.sh {{ openshift_kubeconfig_file }}
