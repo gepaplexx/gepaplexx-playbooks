@@ -22,7 +22,7 @@ function waitForSync() {
         echo "Applications not in synced state after 50 Minutes. Exiting!"
         exit 1
       fi
-    else
+    elif test "${not_synced}" -eq 0; then
       echo "applications synced"
       sync_ok=true
     fi
@@ -44,7 +44,8 @@ function waitForHealthy() {
           echo "Applications not synced after 50 Minutes. Exiting!"
           health_ok=false
         fi
-      else
+      elif test "${not_healthy}" -eq 0; then
+        echo "Applications healthy"
         health_ok=true
       fi
     done;
