@@ -2,11 +2,11 @@
 
 # functions
 function getNotSynced() {
-  oc get applications  --insecure-skip-tls-verify -o jsonpath='{.items[*].status.sync}' --kubeconfig="${KUBECONFIG}" -n openshift-gitops | jq 'select(.status != "Synced")' -c | wc -l
+  oc get applications --insecure-skip-tls-verify -o jsonpath='{.items[*].status.sync}' --kubeconfig="${KUBECONFIG}" -n openshift-gitops | jq 'select(.status != "Synced")' -c | wc -l
 }
 
 function getNotHealthy() {
-  oc get applications -o --insecure-skip-tls-verify jsonpath='{.items[*].status.health}' --kubeconfig="${KUBECONFIG}" -n openshift-gitops | jq 'select(.status != "Healthy")' -c | wc -l
+  oc get applications --insecure-skip-tls-verify -o jsonpath='{.items[*].status.health}' --kubeconfig="${KUBECONFIG}" -n openshift-gitops | jq 'select(.status != "Healthy")' -c | wc -l
 }
 
 function waitForSync() {
