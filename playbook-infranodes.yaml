@@ -1,7 +1,7 @@
 ---
 - name: infranodes
   hosts:
-    - all
+    - infranodes
   become: true
   tags:
     - kubernetes
