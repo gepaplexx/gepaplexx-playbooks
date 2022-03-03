@@ -12,7 +12,7 @@ function getNotHealthy() {
 function waitForSync() {
   # Wait for all Applications to finish syncing
   echo "waiting for applications to be synced"
-  while test "${not_synced}" -gt 0 && test "${loops}" -lt 50; do
+  while test "${not_synced}" -gt 0 && test "${loops}" -lt 60; do
     not_synced=$(getNotSynced)
     if test "${not_synced}" -gt 0; then
       echo "Loop ${loops}: waiting for ${not_synced} applications to finish syncing";
@@ -34,7 +34,7 @@ function waitForHealthy() {
   if [ "${sync_ok}" == true ];then
     echo "waiting for applications to be healthy"
 
-    while test "${not_healthy}" -gt 0 && test "${loops}" -lt 50; do
+    while test "${not_healthy}" -gt 0 && test "${loops}" -lt 180; do
       not_synced=$(getNotHealthy)
       if test "${not_healthy}" -gt 0; then
         echo "Loop ${loops}: waiting for ${not_healthy} applications to be healthy";
