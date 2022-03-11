@@ -35,7 +35,7 @@ function waitForHealthy() {
     echo "waiting for applications to be healthy"
 
     while test "${not_healthy}" -gt 0 && test "${loops}" -lt 180; do
-      not_synced=$(getNotHealthy)
+      not_healthy=$(getNotHealthy)
       if test "${not_healthy}" -gt 0; then
         echo "Loop ${loops}: waiting for ${not_healthy} applications to be healthy";
         sleep 60
