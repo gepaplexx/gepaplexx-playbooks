@@ -1,8 +1,16 @@
 ---
 - name: awx-iac
-  hosts:
-    - all
+  hosts: localhost
+  connection: local
+  vars_files:
+    # source the become passwort from an ansible vault
+    - /path/to/awx-iac.vault
+  vars:
+    ansible_become_pass: '{{ ansible_become_pass }}'
+    ssh_key_github: '{{ github_ssh_key }}'
+
   become: true
   roles:
-    - role: gepaplexx.awx_iac
+    # this role will be merged into the playbook
+    - role: /path/to/ansible-role-awx-iac
 ...
