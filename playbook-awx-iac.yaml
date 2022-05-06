@@ -4,7 +4,7 @@
   connection: local
   vars_files:
     # path to the vault that stores the following vars
-    - /some/dir/awx-iac.vault
+    - /home/work/projects/gepaplexx/vaults/awx-iac.vault
   vars:
     ansible_become_pass: '{{ ansible_become_pass }}'
     ssh_key_github: '{{ github_ssh_key }}'
@@ -12,6 +12,19 @@
   become: true
 
   tasks:
+
+    - name: Add AWX Organization
+      awx.awx.organization:
+        name: "{{ item.name }}"
+        description: "{{ item.description }}"
+        state: present
+        validate_certs: true
+        controller_host: "{{ awx_iac_host_ip }}"
+        controller_username: "{{ awx_iac_user }}"
+        controller_password: "{{ awx_iac_pass }}"
+      loop: "{{ awx_iac_organizations }}"
+      loop_control:
+        label: "{{ item.name }}"
 
     - name: Add AWX Credentials
       awx.awx.credential:
@@ -43,6 +56,31 @@
       loop_control:
         label: "{{ item.name }}"
 
+    - name: Add AWX Projects
+      awx.awx.project:
+        name: "{{ item.name }}"
+        description: "{{ item.description }}"
+        organization: "{{ item.organization | default('gepaplexx') }}"
+        credential: "{{ item.credential }}"
+        scm_type: "{{ item.scm_type }}"
+        scm_branch: "{{ item.scm_branch }}"
+        scm_url: "{{ item.scm_url }}"
+        scm_refspec: "{{ item.scm_refspec }}"
+        scm_clean: "{{ item.scm_clean }}"
+        scm_track_submodules: "{{ item.scm_track_submodules }}"
+        scm_delete_on_update: "{{ item.scm_delete_on_update }}"
+        scm_update_on_launch: "{{ item.scm_update_on_launch }}"
+        scm_update_cache_timeout: "{{ item.scm_update_cache_timeout }}"
+        allow_override: "{{ item.allow_override }}"
+        state: present
+        validate_certs: true
+        controller_host: "{{ awx_iac_host_ip }}"
+        controller_username: "{{ awx_iac_user }}"
+        controller_password: "{{ awx_iac_pass }}"
+      loop: "{{ awx_iac_projects }}"
+      loop_control:
+        label: "{{ item.name }}"
+ 
     - name: Add AWX Inventories
       awx.awx.inventory:
         name: "{{ item.name }}"
@@ -116,44 +154,6 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Add AWX Organization
-      awx.awx.organization:
-        name: "{{ item.name }}"
-        description: "{{ item.description }}"
-        state: present
-        validate_certs: true
-        controller_host: "{{ awx_iac_host_ip }}"
-        controller_username: "{{ awx_iac_user }}"
-        controller_password: "{{ awx_iac_pass }}"
-      loop: "{{ awx_iac_organizations }}"
-      loop_control:
-        label: "{{ item.name }}"
-
-    - name: Add AWX Projects
-      awx.awx.project:
-        name: "{{ item.name }}"
-        description: "{{ item.description }}"
-        organization: "{{ item.organization | default('gepaplexx') }}"
-        credential: "{{ item.credential }}"
-        scm_type: "{{ item.scm_type }}"
-        scm_branch: "{{ item.scm_branch }}"
-        scm_url: "{{ item.scm_url }}"
-        scm_refspec: "{{ item.scm_refspec }}"
-        scm_clean: "{{ item.scm_clean }}"
-        scm_track_submodules: "{{ item.scm_track_submodules }}"
-        scm_delete_on_update: "{{ item.scm_delete_on_update }}"
-        scm_update_on_launch: "{{ item.scm_update_on_launch }}"
-        scm_update_cache_timeout: "{{ item.scm_update_cache_timeout }}"
-        allow_override: "{{ item.allow_override }}"
-        state: present
-        validate_certs: true
-        controller_host: "{{ awx_iac_host_ip }}"
-        controller_username: "{{ awx_iac_user }}"
-        controller_password: "{{ awx_iac_pass }}"
-      loop: "{{ awx_iac_projects }}"
-      loop_control:
-        label: "{{ item.name }}"
-
     - name: Add ThirdParty Auth Github
       awx.awx.settings:
         name: "{{ item.name }}"
@@ -164,6 +164,30 @@
         controller_password: "{{ awx_iac_pass }}"
       loop: "{{ awx_iac_github_auth }}"
       no_log: true
+
+    - name: Add AWX Workflow Job Template
+      awx.awx.workflow_job_template:
+        name: "{{ item.name }}"
+        description: "{{ item.description }}"
+        organization: "{{ item.organization | default('gepaplexx') }}"
+        extra_vars: "{{ item.extra_vars }}"
+        survey_enabled: "{{ item.survey_enabled }}"
+        allow_simultaneous: "{{ item.allow_simultaneous }}"
+        ask_variables_on_launch: "{{ item.ask_variables_on_launch }}"
+        inventory: "{{ item.inventory }}"
+        limit: "{{ item.limit }}"
+        scm_branch: "{{ item.scm_branch }}"
+        ask_inventory_on_launch: "{{ item.ask_inventory_on_launch }}"
+        ask_scm_branch_on_launch: "{{ item.ask_scm_branch_on_launch }}"
+        ask_limit_on_launch: "{{ item.ask_limit_on_launch }}"
+        state: present
+        validate_certs: true
+        controller_host: "{{ awx_iac_host_ip }}"
+        controller_username: "{{ awx_iac_user }}"
+        controller_password: "{{ awx_iac_pass }}"
+      loop: "{{ awx_iac_workflow_job_templates }}"
+      loop_control:
+        label: "{{ item.name }}"
 
     - name: Add AWX Workflow Job Template Nodes
       awx.awx.workflow_job_template_node:
@@ -214,27 +238,4 @@
       loop_control:
         label: "{{ item.identifier }}"
 
-    - name: Add AWX Workflow Job Template
-      awx.awx.workflow_job_template:
-        name: "{{ item.name }}"
-        description: "{{ item.description }}"
-        organization: "{{ item.organization | default('gepaplexx') }}"
-        extra_vars: "{{ item.extra_vars }}"
-        survey_enabled: "{{ item.survey_enabled }}"
-        allow_simultaneous: "{{ item.allow_simultaneous }}"
-        ask_variables_on_launch: "{{ item.ask_variables_on_launch }}"
-        inventory: "{{ item.inventory }}"
-        limit: "{{ item.limit }}"
-        scm_branch: "{{ item.scm_branch }}"
-        ask_inventory_on_launch: "{{ item.ask_inventory_on_launch }}"
-        ask_scm_branch_on_launch: "{{ item.ask_scm_branch_on_launch }}"
-        ask_limit_on_launch: "{{ item.ask_limit_on_launch }}"
-        state: present
-        validate_certs: true
-        controller_host: "{{ awx_iac_host_ip }}"
-        controller_username: "{{ awx_iac_user }}"
-        controller_password: "{{ awx_iac_pass }}"
-      loop: "{{ awx_iac_workflow_job_templates }}"
-      loop_control:
-        label: "{{ item.name }}"
 ...
