@@ -1,18 +1,16 @@
 ---
+# How-To:
+# This playbook runs on localhost. The awx.awx module connects to the API of an existing AWX instance and creates resources defined in the inventory.
+# * Checkout the inventory-hub repository https://github.com/gepaplexx/inventory-hub
+# * Get the AWX url e.g.: https://ansible.infra.gepaplexx.com
+# * Get the password for the AWX admin user
+# * Create a file with the vault password
+# * Run this playbook from the command line:
+# ansible-playbook playbook-awx-iac.yaml -i <path to inventory-hub> -e"awx_iac_host_ip=<awx ip or url> awx_iac_pass=<awx admin password> " --vault-password-file <file containing the vault password>
 - name: awx-iac
   hosts: localhost
   connection: local
-  vars_files:
-    # path to the vault that stores the following vars
-    - /home/work/projects/gepaplexx/vaults/awx-iac.vault
-  vars:
-    ansible_become_pass: '{{ ansible_become_pass }}'
-    ssh_key_github: '{{ github_ssh_key }}'
-
-  become: true
-
   tasks:
-
     - name: Add AWX Organization
       awx.awx.organization:
         name: "{{ item.name }}"
@@ -33,7 +31,6 @@
         organization: "{{ item.organization | default('gepaplexx') }}"
         credential_type: "{{ item.credential_type }}"
         inputs: "{{ item.inputs | default({}) }}"
-        # update_secrets default set to false for development
         update_secrets: "{{ item.update_secrets | default(true) }}"
         state: present
         validate_certs: true
