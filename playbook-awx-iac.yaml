@@ -15,6 +15,7 @@
       awx.awx.organization:
         name: "{{ item.name }}"
         description: "{{ item.description }}"
+        galaxy_credentials: "{{ item.galaxy_credentials }}"
         state: present
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
