@@ -11,7 +11,7 @@
   hosts: localhost
   connection: local
   tasks:
-    - name: Add AWX Organization
+    - name: Configure AWX Organization
       awx.awx.organization:
         name: "{{ item.name }}"
         description: "{{ item.description }}"
@@ -25,7 +25,7 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Add AWX Credentials
+    - name: Configure AWX Credentials
       awx.awx.credential:
         name: "{{ item.name }}"
         description: "{{ item.description }}"
@@ -41,7 +41,7 @@
       loop: "{{ awx_iac_credentials }}"
       no_log: true
 
-    - name: Add AWX Execution Environment
+    - name: Configure AWX Execution Environment
       awx.awx.execution_environment:
         name: "{{ item.name }}"
         image: "{{ item.image }}"
@@ -54,7 +54,7 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Add AWX Projects
+    - name: Configure AWX Projects
       awx.awx.project:
         name: "{{ item.name }}"
         description: "{{ item.description }}"
@@ -78,8 +78,8 @@
       loop: "{{ awx_iac_projects }}"
       loop_control:
         label: "{{ item.name }}"
- 
-    - name: Add AWX Inventories
+
+    - name: Configure AWX Inventories
       awx.awx.inventory:
         name: "{{ item.name }}"
         description: "{{ item.description }}"
@@ -93,7 +93,7 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Add AWX Inventory Sources
+    - name: Configure AWX Inventory Sources
       awx.awx.inventory_source:
         name: "{{ item.name }}"
         description: "{{ item.description }}"
@@ -128,7 +128,7 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Add AWX Job Template
+    - name: Configure AWX Job Template
       awx.awx.job_template:
         name: "{{ item.name }}"
         description: "{{ item.description }}"
@@ -152,7 +152,7 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Add ThirdParty Auth Github
+    - name: Configure ThirdParty Auth Github
       awx.awx.settings:
         name: "{{ item.name }}"
         value: "{{ item.value }}"
@@ -163,7 +163,7 @@
       loop: "{{ awx_iac_github_auth }}"
       no_log: true
 
-    - name: Add AWX Workflow Job Template
+    - name: Configure AWX Workflow Job Template
       awx.awx.workflow_job_template:
         name: "{{ item.name }}"
         description: "{{ item.description }}"
@@ -187,7 +187,7 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Add AWX Workflow Job Template Nodes
+    - name: Configure AWX Workflow Job Template Nodes
       awx.awx.workflow_job_template_node:
         extra_data: "{{ item.extra_data | default(omit) }}"
         inventory: "{{ item.inventory | default(None) }}"
@@ -211,7 +211,7 @@
 
     # Now the nodes exist. The loop variable is the same.
     # We add the success, failure and always nodes.
-    - name: Add AWX Workflow Job Template Node Connections
+    - name: Configure AWX Workflow Job Template Node Connections
       awx.awx.workflow_job_template_node:
         extra_data: "{{ item.extra_data | default(omit) }}"
         inventory: "{{ item.inventory | default(None) }}"
