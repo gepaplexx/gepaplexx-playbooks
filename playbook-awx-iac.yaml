@@ -16,7 +16,7 @@
         name: "{{ item.name }}"
         description: "{{ item.description }}"
         galaxy_credentials: "{{ item.galaxy_credentials }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
@@ -33,7 +33,7 @@
         credential_type: "{{ item.credential_type }}"
         inputs: "{{ item.inputs | default({}) }}"
         update_secrets: "{{ item.update_secrets | default(true) }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
@@ -45,7 +45,7 @@
       awx.awx.execution_environment:
         name: "{{ item.name }}"
         image: "{{ item.image }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
@@ -70,7 +70,7 @@
         scm_update_on_launch: "{{ item.scm_update_on_launch }}"
         scm_update_cache_timeout: "{{ item.scm_update_cache_timeout }}"
         allow_override: "{{ item.allow_override }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
@@ -84,7 +84,7 @@
         name: "{{ item.name }}"
         description: "{{ item.description }}"
         organization: "{{ item.organization | default('gepaplexx') }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
@@ -106,7 +106,7 @@
         source_project: "{{ item.source_project }}"
         source_path: "{{ item.source_path }}"
         source_vars: "{{ item.source_vars | default({}) }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
@@ -143,7 +143,7 @@
         become_enabled: "{{ item.become_enabled | default(true) }}"
         ask_inventory_on_launch:
           "{{ item.ask_inventory_on_launch | default(true) }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
@@ -178,7 +178,7 @@
         ask_inventory_on_launch: "{{ item.ask_inventory_on_launch }}"
         ask_scm_branch_on_launch: "{{ item.ask_scm_branch_on_launch }}"
         ask_limit_on_launch: "{{ item.ask_limit_on_launch }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
@@ -200,7 +200,7 @@
         all_parents_must_converge:
           "{{ item.all_parents_must_converge | default(false) }}"
         identifier: "{{ item.identifier }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
@@ -227,7 +227,7 @@
         all_parents_must_converge:
           "{{ item.all_parents_must_converge | default(false) }}"
         identifier: "{{ item.identifier }}"
-        state: present
+        state: "{{ item.state | default('present') }}"
         validate_certs: true
         controller_host: "{{ awx_iac_host_ip }}"
         controller_username: "{{ awx_iac_user }}"
