@@ -10,7 +10,7 @@ function getNotHealthy() {
 }
 
 function getNodesNotReady() {
-  oc get nodes --insecure-skip-tls-verify --o jsonpath="{range .items[?(@.status.conditions[-1].type!='Ready')]}{.metadata.name} {.status.conditions[-1].type}{'\n'}{end}" | wc -l
+  oc get nodes --insecure-skip-tls-verify --kubeconfig="${KUBECONFIG}" -o jsonpath="{range .items[?(@.status.conditions[-1].type!='Ready')]}{.metadata.name} {.status.conditions[-1].type}{'\n'}{end}" | wc -l
 }
 
 function getPendingPods() {
