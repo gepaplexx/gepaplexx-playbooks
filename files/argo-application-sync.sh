@@ -122,11 +122,13 @@ function main() {
     exit 1
   fi
 
-  sleep 300 # wait for 10 minutes to be sure that nodes are rebooted and applications are actually ready.
+  echo "waiting for 10 minutes before checking for all ready nodes"""
+  sleep 10m # wait for 10 minutes to be sure that nodes are rebooted and applications are actually ready.
   not_ready_nodes=$(getNodesNotReady)
   waitForNodesReady
 
-  sleep 180 # safety first
+  echo "waiting for 5 minutes before checking for all ready pods"
+  sleep 5m # safety first
   not_ready_pods=$(getPendingPods)
   waitForPodsReady
 
