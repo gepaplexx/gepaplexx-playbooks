@@ -113,7 +113,7 @@ function main() {
   waitForHealthy
 
   if [ "${health_ok}" == true ]; then
-    echo "Applications are Synced and Healthy. Exiting."
+    echo "Applications are Synced and Healthy. Waiting for Nodes to reboot."
   else
     echo "Sync status: ${sync_ok}"
     echo "Health status: ${health_ok}"
@@ -121,7 +121,7 @@ function main() {
     exit 1
   fi
 
-  echo "waiting for 10 minutes before checking for all ready nodes"""
+  echo "waiting for 10 minutes before checking for all ready nodes"
   sleep 10m # wait for 10 minutes to be sure that nodes are rebooted and applications are actually ready.
   not_ready_nodes=$(getNodesNotReady)
   waitForNodesReady
