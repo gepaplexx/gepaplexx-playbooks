@@ -114,7 +114,6 @@ function main() {
 
   if [ "${health_ok}" == true ]; then
     echo "Applications are Synced and Healthy. Exiting."
-    exit 0
   else
     echo "Sync status: ${sync_ok}"
     echo "Health status: ${health_ok}"
