@@ -1,0 +1,149 @@
+---
+- name: Setup VM for DNS
+  hosts: terraform_dns
+  connection: local
+  tags: tf,tf_dns
+  roles:
+    - role: gepaplexx.terraform
+
+- name: Setup VM's for the infra cluster
+  hosts: terraform_infra_cluster
+  connection: local
+  tags: tf,tf_infra
+  roles:
+    - role: gepaplexx.terraform
+
+- name: Wait for OpenSSH
+  hosts: infra_cluster,dns
+  gather_facts: false
+  tasks:
+    - name: Wait for OpenSSH
+      ansible.builtin.wait_for:
+        port: '{{ wait_for_ssh_port | default(22) }}'
+        host: '{{ ( ansible_ssh_host | default(ansible_host) ) | default(inventory_hostname) }}'
+        search_regex: OpenSSH
+        delay: 10
+        timeout: '{{ wait_for_ssh_timeout_in_sec | default(300) }}'
+      vars:
+        ansible_connection: local
+
+- name: Run unattended upgrades
+  hosts: infra_cluster,dns
+  remote_user: ansible
+  become: true
+  tags: vm
+  roles:
+    - role: gepaplexx.unattended_upgrades
+
+- name: Install nfs-common
+  hosts: infra_cluster
+  remote_user: ansible
+  become: true
+  tasks:
+    - name: NFS-COMMON
+      ansible.builtin.apt:
+        name: nfs-common
+        state: present
+
+- name: Setup DNS Server
+  hosts: central-dns
+  remote_user: ansible
+  become: true
+  tags: dns
+  roles:
+    - role: gepaplexx.dns
+
+- name: Install Microk8s Cluster
+  hosts: infra_cluster
+  remote_user: ansible
+  become: true
+  tags: microk8s,infracluster
+  roles:
+    - role: gepaplexx.microk8s
+
+- name: Install Longhorn
+  hosts: infra_cluster
+  remote_user: ansible
+  become: true
+  tags: longhorn,infracluster
+  roles:
+    - role: gepaplexx.longhorn
+
+#- name: Install Cert Manager
+#  hosts: all,!dns
+#  remote_user: ansible
+#  become: true
+#  tags: certmanager
+#  roles:
+#    - role: gepaplexx.cert_manager
+
+- name: Deploy AWX-Operator
+  hosts: infra_master
+  remote_user: ansible
+  become: true
+  tags: awxoperator,infracluster
+  tasks:
+    - name: Add Helm Repository for AWX-Operator
+      kubernetes.core.helm_repository:
+        repo_url: "https://ansible.github.io/awx-operator/" # "{{ item.url | mandatory }}"
+        repo_name: "awx-operator" # "{{ item.name | mandatory }}"
+
+    - name: Install the Helm Operator Chart
+      kubernetes.core.helm:
+        chart_ref: "awx-operator/awx-operator"
+        chart_version: "{{ awx_operator_version }}"
+        create_namespace: "true"
+        release_name: "awx-operator"
+        release_namespace: "default"
+        release_state: "present"
+        wait: "true"
+
+- name: Deploy AWX
+  hosts: infra_master
+  remote_user: ansible
+  become: true
+  tags: awx,infracluster
+  tasks:
+    - name: Deploy AWX
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: awx.ansible.com/v1beta1
+          kind: AWX
+          metadata:
+            name: "{{ awx_crd.name }}"
+            namespace: "{{ awx_crd.namespace }}"
+          spec: |
+            {{ awx_crd.spec }}
+
+    # TODO AWX befüllen => ist mittlerweile eigenes Playbook: dieses inkludieren oder kopieren?
+
+# TODO Oder inkludieren des bereits bestehenden playbooks?
+- name: Install http-mirror and docker hub mirror on infrastructure cluster
+  hosts:
+    - infra_master
+  remote_user: ansible
+  tags: mirrors
+  tasks:
+    - name: Add gepaplexx Helm charts repository
+      community.kubernetes.helm_repository:
+        name: gepaplexx-charts
+        repo_url: "https://gepaplexx.github.io/gp-helm-charts/"
+
+    - name: Install HTTP-Mirror
+      community.kubernetes.helm:
+        chart_ref: gepaplexx-charts/gp-http-mirror
+        release_name: openshift
+        release_namespace: gp-mirror
+        create_namespace: true
+
+    - name: Install Docker Hub Mirror
+      community.kubernetes.helm:
+        chart_ref: gepaplexx-charts/gp-pull-through-cache-registry
+        release_name: gp-registry-cache-kube
+        release_namespace: gp-registry
+        create_namespace: true
+
+
+    # TODO MinIO?
+...
