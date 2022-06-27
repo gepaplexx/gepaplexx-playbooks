@@ -1,7 +1,6 @@
 ---
 - name: cert-manager
-  hosts:
-    - all
+  hosts: "{{ run_on | default('all') }}"
   become: true
   tags:
     - kubernetes

@@ -1,31 +1,34 @@
 ---
 - name: Install http-mirror and docker hub mirror on infrastructure cluster
-  hosts:
-    - all
+  hosts: "{{ run_on | default('all') }}"
   tags:
     - infra.http-mirror
 
   tasks:
     - name: Add gepaplexx Helm charts repository
-      community.kubernetes.helm_repository:
+      kubernetes.core.helm_repository:
         name: gepaplexx-charts
         repo_url: "https://gepaplexx.github.io/gp-helm-charts/"
 
     - name: Install HTTP-Mirror
-      community.kubernetes.helm:
+      kubernetes.core.helm:
         chart_ref: gepaplexx-charts/gp-http-mirror
         release_name: openshift
         release_namespace: gp-mirror
         create_namespace: true
+        values: |
+          {{ http_mirror_values }}
       tags:
         - notest
 
     - name: Install Docker Hub Mirror
-      community.kubernetes.helm:
+      kubernetes.core.helm:
         chart_ref: gepaplexx-charts/gp-pull-through-cache-registry
         release_name: gp-registry-cache-kube
         release_namespace: gp-registry
         create_namespace: true
+        values: |
+          {{ dockerhub_mirror_values }}
       tags:
         - notest
 ...

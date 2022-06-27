@@ -1,6 +1,6 @@
 ---
 - name: unattendend-upgrades
-  hosts: all
+  hosts: "{{ run_on | default('all') }}"
   become: true
   tags:
     - unattended-upgrages

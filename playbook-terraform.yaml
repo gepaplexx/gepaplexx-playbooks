@@ -1,7 +1,6 @@
 ---
 - name: Run terraform plan
-  hosts:
-    - all
+  hosts: "{{ run_on | default('all') }}"
   roles:
     - role: gepaplexx.terraform
 ...

@@ -1,17 +1,15 @@
 ---
 - name: Setup VM for DNS
-  hosts: terraform_dns
-  connection: local
-  tags: tf,tf_dns
-  roles:
-    - role: gepaplexx.terraform
+  import_playbook: playbook-terraform.yaml
+  vars:
+    run_on: terraform_dns
+  tags: tf,tf_dns,dns
 
 - name: Setup VM's for the infra cluster
-  hosts: terraform_infra_cluster
-  connection: local
-  tags: tf,tf_infra
-  roles:
-    - role: gepaplexx.terraform
+  import_playbook: playbook-terraform.yaml
+  vars:
+    run_on: terraform_infra_cluster
+  tags: tf,tf_infra,infra_cluster
 
 - name: Wait for OpenSSH
   hosts: infra_cluster,dns
@@ -28,16 +26,13 @@
         ansible_connection: local
 
 - name: Run unattended upgrades
-  hosts: infra_cluster,dns
-  remote_user: ansible
-  become: true
-  tags: vm
-  roles:
-    - role: gepaplexx.unattended_upgrades
+  import_playbook: playbook-unattended-upgrades.yaml
+  vars:
+    run_on: infra_cluster,dns
+  tags: vm,infra_cluster,dns
 
 - name: Install nfs-common
   hosts: infra_cluster
-  remote_user: ansible
   become: true
   tasks:
     - name: NFS-COMMON
@@ -46,47 +41,61 @@
         state: present
 
 - name: Setup DNS Server
-  hosts: central-dns
-  remote_user: ansible
-  become: true
+  import_playbook: playbook-dns.yaml
+  vars:
+    run_on: central-dns
   tags: dns
-  roles:
-    - role: gepaplexx.dns
 
 - name: Install Microk8s Cluster
-  hosts: infra_cluster
-  remote_user: ansible
-  become: true
+  import_playbook: playbook-microk8s.yaml
+  vars:
+    run_on: infra_cluster
   tags: microk8s,infracluster
-  roles:
-    - role: gepaplexx.microk8s
 
 - name: Install Longhorn
-  hosts: infra_cluster
-  remote_user: ansible
-  become: true
+  import_playbook: playbook-longhorn.yaml
   tags: longhorn,infracluster
-  roles:
-    - role: gepaplexx.longhorn
 
-#- name: Install Cert Manager
-#  hosts: all,!dns
-#  remote_user: ansible
-#  become: true
-#  tags: certmanager
-#  roles:
-#    - role: gepaplexx.cert_manager
-
-- name: Deploy AWX-Operator
+- name: Deploy starage class with reclaim policy retain
   hosts: infra_master
-  remote_user: ansible
+  tasks:
+    - kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: storage.k8s.io/v1
+          kind: StorageClass
+          metadata:
+            name: longhorn-retain
+          provisioner: driver.longhorn.io
+          parameters:
+            dataLocality: disabled
+            fromBackup: ""
+            fsType: ext4
+            numberOfReplicas: "3"
+            staleReplicaTimeout: "30"
+          reclaimPolicy: Retain
+          volumeBindingMode: Immediate
+          allowVolumeExpansion: true
+
+- name: Deploy HTTP- and Docker-Mirror
+  import_playbook: playbook-mirrors.yaml
+  vars:
+    run_on: infra_master
+
+- name: Deploy Certmanager
+  import_playbook: playbook-cert-manager.yaml
+  vars:
+    run_on: infra_master
+
+- name: Deploy AWX
+  hosts: infra_master
   become: true
-  tags: awxoperator,infracluster
+  tags: awx,infracluster
   tasks:
     - name: Add Helm Repository for AWX-Operator
       kubernetes.core.helm_repository:
-        repo_url: "https://ansible.github.io/awx-operator/" # "{{ item.url | mandatory }}"
-        repo_name: "awx-operator" # "{{ item.name | mandatory }}"
+        repo_url: "https://ansible.github.io/awx-operator/"
+        repo_name: "awx-operator"
 
     - name: Install the Helm Operator Chart
       kubernetes.core.helm:
@@ -98,12 +107,18 @@
         release_state: "present"
         wait: "true"
 
-- name: Deploy AWX
-  hosts: infra_master
-  remote_user: ansible
-  become: true
-  tags: awx,infracluster
-  tasks:
+    - name: Create admin secret for AWX
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ awx_crd.name }}-admin-password"
+            namespace: "{{ awx_crd.namespace }}"
+          data:
+            password: "{{ awx_admin_password | b64encode }}"
+
     - name: Deploy AWX
       kubernetes.core.k8s:
         state: present
@@ -116,34 +131,16 @@
           spec: |
             {{ awx_crd.spec }}
 
-    # TODO AWX befüllen => ist mittlerweile eigenes Playbook: dieses inkludieren oder kopieren?
+    - name: Wait for AWX to come up
+      ansible.builtin.uri:
+        url: "https://{{ awx_crd.spec.hostname }}/api/"
+        status_code: 200
+        validate_certs: no
+      register: result
+      until: result.status == 200
+      retries: 60
+      delay: 10
 
-# TODO Oder inkludieren des bereits bestehenden playbooks?
-- name: Install http-mirror and docker hub mirror on infrastructure cluster
-  hosts:
-    - infra_master
-  remote_user: ansible
-  tags: mirrors
-  tasks:
-    - name: Add gepaplexx Helm charts repository
-      community.kubernetes.helm_repository:
-        name: gepaplexx-charts
-        repo_url: "https://gepaplexx.github.io/gp-helm-charts/"
-
-    - name: Install HTTP-Mirror
-      community.kubernetes.helm:
-        chart_ref: gepaplexx-charts/gp-http-mirror
-        release_name: openshift
-        release_namespace: gp-mirror
-        create_namespace: true
-
-    - name: Install Docker Hub Mirror
-      community.kubernetes.helm:
-        chart_ref: gepaplexx-charts/gp-pull-through-cache-registry
-        release_name: gp-registry-cache-kube
-        release_namespace: gp-registry
-        create_namespace: true
-
-
-    # TODO MinIO?
+- name: Configure AWX
+  import_playbook: playbook-awx-iac.yaml
 ...

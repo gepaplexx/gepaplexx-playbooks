@@ -1,7 +1,6 @@
 ---
 - name: dns
-  hosts:
-    - all
+  hosts: "{{ run_on | default('all') }}"
   become: true
   roles:
     - role: gepaplexx.dns
