@@ -1,6 +1,6 @@
 ---
 - name: microk8s
-  hosts: all
+  hosts: "{{ run_on | default('all') }}"
   become: true
   tags:
     - microk8s

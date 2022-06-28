@@ -1,0 +1,146 @@
+---
+- name: Setup VM for DNS
+  import_playbook: playbook-terraform.yaml
+  vars:
+    run_on: terraform_dns
+  tags: tf,tf_dns,dns
+
+- name: Setup VM's for the infra cluster
+  import_playbook: playbook-terraform.yaml
+  vars:
+    run_on: terraform_infra_cluster
+  tags: tf,tf_infra,infra_cluster
+
+- name: Wait for OpenSSH
+  hosts: infra_cluster,dns
+  gather_facts: false
+  tasks:
+    - name: Wait for OpenSSH
+      ansible.builtin.wait_for:
+        port: '{{ wait_for_ssh_port | default(22) }}'
+        host: '{{ ( ansible_ssh_host | default(ansible_host) ) | default(inventory_hostname) }}'
+        search_regex: OpenSSH
+        delay: 10
+        timeout: '{{ wait_for_ssh_timeout_in_sec | default(300) }}'
+      vars:
+        ansible_connection: local
+
+- name: Run unattended upgrades
+  import_playbook: playbook-unattended-upgrades.yaml
+  vars:
+    run_on: infra_cluster,dns
+  tags: vm,infra_cluster,dns
+
+- name: Install nfs-common
+  hosts: infra_cluster
+  become: true
+  tasks:
+    - name: NFS-COMMON
+      ansible.builtin.apt:
+        name: nfs-common
+        state: present
+
+- name: Setup DNS Server
+  import_playbook: playbook-dns.yaml
+  vars:
+    run_on: central-dns
+  tags: dns
+
+- name: Install Microk8s Cluster
+  import_playbook: playbook-microk8s.yaml
+  vars:
+    run_on: infra_cluster
+  tags: microk8s,infracluster
+
+- name: Install Longhorn
+  import_playbook: playbook-longhorn.yaml
+  tags: longhorn,infracluster
+
+- name: Deploy storage class with reclaim policy retain
+  hosts: infra_master
+  tasks:
+    - kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: storage.k8s.io/v1
+          kind: StorageClass
+          metadata:
+            name: longhorn-retain
+          provisioner: driver.longhorn.io
+          parameters:
+            dataLocality: disabled
+            fromBackup: ""
+            fsType: ext4
+            numberOfReplicas: "3"
+            staleReplicaTimeout: "30"
+          reclaimPolicy: Retain
+          volumeBindingMode: Immediate
+          allowVolumeExpansion: true
+
+- name: Deploy HTTP- and Docker-Mirror
+  import_playbook: playbook-mirrors.yaml
+  vars:
+    run_on: infra_master
+
+- name: Deploy Certmanager
+  import_playbook: playbook-cert-manager.yaml
+  vars:
+    run_on: infra_master
+
+- name: Deploy AWX
+  hosts: infra_master
+  become: true
+  tags: awx,infracluster
+  tasks:
+    - name: Add Helm Repository for AWX-Operator
+      kubernetes.core.helm_repository:
+        repo_url: "https://ansible.github.io/awx-operator/"
+        repo_name: "awx-operator"
+
+    - name: Install the Helm Operator Chart
+      kubernetes.core.helm:
+        chart_ref: "awx-operator/awx-operator"
+        chart_version: "{{ awx_operator_version }}"
+        create_namespace: "true"
+        release_name: "awx-operator"
+        release_namespace: "default"
+        release_state: "present"
+        wait: "true"
+
+    - name: Create admin secret for AWX
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ awx_crd.name }}-admin-password"
+            namespace: "{{ awx_crd.namespace }}"
+          data:
+            password: "{{ awx_admin_password | b64encode }}"
+
+    - name: Deploy AWX
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: awx.ansible.com/v1beta1
+          kind: AWX
+          metadata:
+            name: "{{ awx_crd.name }}"
+            namespace: "{{ awx_crd.namespace }}"
+          spec: |
+            {{ awx_crd.spec }}
+
+    - name: Wait for AWX to come up
+      ansible.builtin.uri:
+        url: "https://{{ awx_crd.spec.hostname }}/api/"
+        status_code: 200
+        validate_certs: no
+      register: result
+      until: result.status == 200
+      retries: 60
+      delay: 10
+
+- name: Configure AWX
+  import_playbook: playbook-awx-iac.yaml
+...
