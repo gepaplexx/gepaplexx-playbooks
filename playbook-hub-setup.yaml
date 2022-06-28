@@ -56,7 +56,7 @@
   import_playbook: playbook-longhorn.yaml
   tags: longhorn,infracluster
 
-- name: Deploy starage class with reclaim policy retain
+- name: Deploy storage class with reclaim policy retain
   hosts: infra_master
   tasks:
     - kubernetes.core.k8s:
