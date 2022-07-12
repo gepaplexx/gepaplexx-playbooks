@@ -143,4 +143,55 @@
 
 - name: Configure AWX
   import_playbook: playbook-awx-iac.yaml
+
+- name: Deploy Monitoring
+  hosts: infra_master
+  become: true
+  tags: monitoring,infracluster
+  tasks:
+    - name: "deploy monitoring stack on hub"
+        kubernetes.core.helm:
+          chart_ref: gepaplexx-charts/gp-hub-monitoring
+          release_name: monitoring-stack
+          release_namespace: hub-monitoring
+          create_namespace: true
+          values: |
+            {{ hub_monitoring_values }}
+        tags:
+          - monitoring
+
+      - name: "create awx api token"
+        awx.awx.token:
+          description: 'API Token for monitoring access'
+          state: present
+          validate_certs: true
+          controller_host: "{{ awx_iac_host_ip }}"
+          controller_username: "{{ awx_iac_user }}"
+          controller_password: "{{ awx_iac_pass }}"
+        register: token
+        tags:
+          - monitoring,awx
+
+      - name: "create k8s secret with token"
+        kubernetes.core.k8s:
+          state: present
+          definition:
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: "awx-token"
+              namespace: "default"
+            data:
+              token: "{{ token.ansible_facts.controller_token.token | b64encode }}"
+        tags:
+          - monitoring,awx
+
+      - name: "deploy awx-monitoring resources"
+        kubernetes.core.helm:
+          chart_ref: gepaplexx-charts/gp-awx-monitoring
+          release_name: awx-monitoring
+          release_namespace: "default"
+          create_namespace: true
+          values: |
+            {{ awx_monitoring_values }}
 ...
