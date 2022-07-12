@@ -180,7 +180,7 @@
             kind: Secret
             metadata:
               name: "awx-token"
-              namespace: "default"
+              namespace: "{{ awx_crd.namespace }}"
             data:
               token: "{{ token.ansible_facts.controller_token.token | b64encode }}"
         tags:
@@ -190,7 +190,7 @@
         kubernetes.core.helm:
           chart_ref: gepaplexx-charts/gp-awx-monitoring
           release_name: awx-monitoring
-          release_namespace: "default"
+          release_namespace: "{{ awx_crd.namespace }}"
           create_namespace: true
           values: |
             {{ awx_monitoring_values }}
